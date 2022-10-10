@@ -14,7 +14,7 @@ int main(int argc , char *argv[])
 
     //Get and check argv
     int doDebug = 0;
-    if(argc != 2) debug(1, 0, "[-]Too many or too short argumets! (server.exe [<boolean> debug])", -1);
+    if(argc != 2) debug(1, 0, "[-]Too many or too short arguments! (server.exe [<boolean> debug])", -1);
     if(strcmp(argv[1], "true") == 0) doDebug = 1;
 
     //Initialize Winsock
